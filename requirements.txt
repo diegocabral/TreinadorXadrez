@@ -1,0 +1,4 @@
+Flask==2.3.3
+python-chess==1.999
+Werkzeug==2.3.7
+stockfish==3.28.0

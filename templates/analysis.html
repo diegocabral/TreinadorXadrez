@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Game Analysis - Chess Analyzer{% endblock %}
+
+{% block extra_css %}
+<style>
+.chess-board {
+    width: 400px;
+    height: 400px;
+    border: 2px solid #333;
+    margin: 0 auto;
+}
+.chess-square {
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    text-align: center;
+    line-height: 50px;
+    font-size: 30px;
+    cursor: pointer;
+}
+.light-square { background-color: #f0d9b5; }
+.dark-square { background-color: #b58863; }
+.move-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.move-item {
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 3px;
+    margin: 2px 0;
+}
+.move-item:hover {
+    background-color: #e9ecef;
+}
+.move-item.active {
+    background-color: #007bff;
+    color: white;
+}
+.analysis-panel {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-top: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-lg">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-chess-board me-2"></i>Game Analysis
+                </h3>
+            </div>
+            <div class="card-body">
+                <!-- Game Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Game Information</h5>
+                        <table class="table table-sm">
+                            <tr><td><strong>White:</strong></td><td>{{ game_data.headers.get('White', 'Unknown') }}</td></tr>
+                            <tr><td><strong>Black:</strong></td><td>{{ game_data.headers.get('Black', 'Unknown') }}</td></tr>
+                            <tr><td><strong>Result:</strong></td><td>{{ game_data.headers.get('Result', '*') }}</td></tr>
+                            <tr><td><strong>Date:</strong></td><td>{{ game_data.headers.get('Date', 'Unknown') }}</td></tr>
+                            {% if game_data.headers.get('Event') %}
+                            <tr><td><strong>Event:</strong></td><td>{{ game_data.headers.get('Event') }}</td></tr>
+                            {% endif %}
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Analysis Controls</h5>
+                        <button class="btn btn-primary" onclick="goToStart()">
+                            <i class="fas fa-fast-backward"></i> Start
+                        </button>
+                        <button class="btn btn-secondary" onclick="previousMove()">
+                            <i class="fas fa-step-backward"></i> Previous
+                        </button>
+                        <button class="btn btn-secondary" onclick="nextMove()">
+                            <i class="fas fa-step-forward"></i> Next
+                        </button>
+                        <button class="btn btn-primary" onclick="goToEnd()">
+                            <i class="fas fa-fast-forward"></i> End
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Chess Board (Placeholder) -->
+                    <div class="col-lg-6">
+                        <h5>Position</h5>
+                        <div id="chessboard" class="mb-3">
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-chess-board fa-3x mb-2"></i>
+                                <p>Chess board visualization would be displayed here</p>
+                                <p class="small">Current position: <span id="currentFen">{{ game_data.moves[0].fen_before if game_data.moves else 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' }}</span></p>
+                            </div>
+                        </div>
+                        
+                        <!-- Analysis Panel -->
+                        <div id="analysisPanel" class="analysis-panel d-none">
+                            <h6><i class="fas fa-brain"></i> Engine Analysis</h6>
+                            <div id="analysisContent">
+                                <div class="text-center">
+                                    <div class="spinner-border spinner-border-sm" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    Analyzing position...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Move List -->
+                    <div class="col-lg-6">
+                        <h5>Moves</h5>
+                        <div class="move-list border rounded p-3">
+                            {% for move in game_data.moves %}
+                                <div class="move-item" 
+                                     data-move-index="{{ loop.index0 }}"
+                                     data-fen="{{ move.fen_before }}"
+                                     onclick="selectMove({{ loop.index0 }})">
+                                    <strong>{{ (loop.index0 // 2) + 1 }}{% if move.white_move %}.{% else %}...{% endif %}</strong>
+                                    {{ move.san }}
+                                    <button class="btn btn-sm btn-outline-primary float-end" 
+                                            onclick="analyzeMove('{{ move.fen_before }}', {{ loop.index0 }}); event.stopPropagation();">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-success" onclick="analyzeAllMoves()">
+                                <i class="fas fa-chess-knight"></i> Analyze All Moves
+                            </button>
+                            <button class="btn btn-info ms-2" onclick="findBlunders()">
+                                <i class="fas fa-exclamation-triangle"></i> Find Blunders
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Move Analysis Modal -->
+<div class="modal fade" id="moveAnalysisModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Move Analysis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalAnalysisContent">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Analyzing position...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let gameData = {{ game_data | tojson }};
+let currentMoveIndex = -1;
+let analysisResults = {};
+
+function selectMove(index) {
+    // Remove active class from all moves
+    document.querySelectorAll('.move-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Add active class to selected move
+    const moveElement = document.querySelector(`[data-move-index="${index}"]`);
+    if (moveElement) {
+        moveElement.classList.add('active');
+        currentMoveIndex = index;
+        
+        // Update FEN display
+        const fen = moveElement.dataset.fen;
+        document.getElementById('currentFen').textContent = fen;
+    }
+}
+
+function goToStart() {
+    currentMoveIndex = -1;
+    document.querySelectorAll('.move-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    document.getElementById('currentFen').textContent = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+}
+
+function goToEnd() {
+    if (gameData.moves.length > 0) {
+        selectMove(gameData.moves.length - 1);
+    }
+}
+
+function previousMove() {
+    if (currentMoveIndex > 0) {
+        selectMove(currentMoveIndex - 1);
+    } else if (currentMoveIndex === 0) {
+        goToStart();
+    }
+}
+
+function nextMove() {
+    if (currentMoveIndex < gameData.moves.length - 1) {
+        selectMove(currentMoveIndex + 1);
+    }
+}
+
+function analyzeMove(fen, moveIndex) {
+    const modal = new bootstrap.Modal(document.getElementById('moveAnalysisModal'));
+    modal.show();
+    
+    // Reset modal content
+    document.getElementById('modalAnalysisContent').innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Analyzing position...</p>
+        </div>
+    `;
+    
+    fetch('/analyze_move', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({fen: fen})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            document.getElementById('modalAnalysisContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> ${data.error}
+                </div>
+            `;
+        } else {
+            analysisResults[moveIndex] = data;
+            displayAnalysis(data, moveIndex);
+        }
+    })
+    .catch(error => {
+        document.getElementById('modalAnalysisContent').innerHTML = `
+            <div class="alert alert-danger">
+                <strong>Error:</strong> Failed to analyze position
+            </div>
+        `;
+    });
+}
+
+function displayAnalysis(analysis, moveIndex) {
+    let evaluationText = '';
+    if (analysis.evaluation) {
+        if (analysis.evaluation.type === 'cp') {
+            const centipawns = analysis.evaluation.value;
+            evaluationText = `${(centipawns / 100).toFixed(2)} pawns`;
+        } else if (analysis.evaluation.type === 'mate') {
+            evaluationText = `Mate in ${Math.abs(analysis.evaluation.value)}`;
+        }
+    }
+    
+    let content = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Position Evaluation</h6>
+                <p><strong>Best Move:</strong> ${analysis.best_move || 'None found'}</p>
+                <p><strong>Evaluation:</strong> ${evaluationText}</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Alternative Moves</h6>
+                <div class="list-group">
+    `;
+    
+    if (analysis.top_moves && analysis.top_moves.length > 0) {
+        analysis.top_moves.forEach((move, index) => {
+            let moveEval = '';
+            if (move.Centipawn !== undefined) {
+                moveEval = `(${(move.Centipawn / 100).toFixed(2)})`;
+            } else if (move.Mate !== undefined) {
+                moveEval = `(M${Math.abs(move.Mate)})`;
+            }
+            
+            content += `
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>${index + 1}. ${move.Move}</span>
+                    <small class="text-muted">${moveEval}</small>
+                </div>
+            `;
+        });
+    } else {
+        content += '<p class="text-muted">No alternative moves found</p>';
+    }
+    
+    content += `
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('modalAnalysisContent').innerHTML = content;
+}
+
+function analyzeAllMoves() {
+    alert('Full game analysis feature coming soon! For now, analyze individual moves by clicking the search icon next to each move.');
+}
+
+function findBlunders() {
+    alert('Blunder detection feature coming soon! This will automatically identify significant evaluation drops in your game.');
+}
+
+// Initialize with first move if available
+if (gameData.moves && gameData.moves.length > 0) {
+    // Don't auto-select, start at beginning position
+}
+</script>
+{% endblock %}
