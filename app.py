@@ -76,14 +76,22 @@ def analyze_position(fen, stockfish=None):
         # Get top moves
         top_moves = stockfish.get_top_moves(5)
         
-        # Get move quality assessment
-        move_quality = assess_move_quality(evaluation, top_moves)
+        # Format evaluation for display
+        evaluation_text = ""
+        if evaluation:
+            if evaluation.get('type') == 'cp':
+                centipawns = evaluation.get('value', 0)
+                evaluation_text = f"{centipawns/100:+.2f} pawns"
+            elif evaluation.get('type') == 'mate':
+                mate_in = evaluation.get('value', 0)
+                evaluation_text = f"Mate in {abs(mate_in)}"
         
         return {
             'best_move': best_move,
-            'evaluation': evaluation,
-            'top_moves': top_moves,
-            'move_quality': move_quality
+            'evaluation': evaluation_text or 'Unknown',
+            'raw_evaluation': evaluation,
+            'top_moves': top_moves or [],
+            'move_quality': assess_move_quality(evaluation, top_moves)
         }
     except Exception as e:
         print(f"Error analyzing position: {e}")
@@ -371,25 +379,33 @@ def upload_file():
         flash('Please upload a valid PGN file')
         return redirect(url_for('index'))
 
-@app.route('/analyze_move', methods=['POST'])
-def analyze_move():
-    """Analyze a specific move and return suggestions"""
-    data = request.json
-    fen = data.get('fen')
-    
-    if not fen:
-        return jsonify({'error': 'No FEN position provided'}), 400
-    
-    stockfish = get_stockfish_engine()
-    if not stockfish:
-        return jsonify({'error': 'Chess engine not available'}), 500
-    
-    analysis = analyze_position(fen, stockfish)
-    
-    if not analysis:
-        return jsonify({'error': 'Failed to analyze position'}), 500
-    
-    return jsonify(analysis)
+@app.route('/analyze_position', methods=['POST'])
+def analyze_position_route():
+    """Analyze a specific position and return suggestions"""
+    try:
+        data = request.json
+        if not data:
+            return jsonify({'success': False, 'error': 'No JSON data provided'}), 400
+            
+        fen = data.get('fen')
+        
+        if not fen:
+            return jsonify({'success': False, 'error': 'No FEN position provided'}), 400
+        
+        stockfish = get_stockfish_engine()
+        if not stockfish:
+            return jsonify({'success': False, 'error': 'Chess engine not available. Please install Stockfish.'}), 500
+        
+        analysis = analyze_position(fen, stockfish)
+        
+        if not analysis:
+            return jsonify({'success': False, 'error': 'Failed to analyze position'}), 500
+        
+        return jsonify({'success': True, 'analysis': analysis})
+        
+    except Exception as e:
+        print(f"Error in analyze_position_route: {e}")
+        return jsonify({'success': False, 'error': f'Server error: {str(e)}'}), 500
 
 @app.route('/convert_move', methods=['POST'])
 def convert_move():
@@ -412,6 +428,13 @@ def convert_move():
             return jsonify({'error': 'Invalid move'}), 400
     except Exception as e:
         return jsonify({'error': f'Error converting move: {e}'}), 500
+
+@app.route('/analyze_all/<game_id>')
+def analyze_all_moves_route(game_id):
+    """Redirect to perform auto-analysis on the current game"""
+    # For now, just redirect back to the analysis page
+    # In a real implementation, you might trigger re-analysis here
+    return redirect(url_for('analyze_game', filename=game_id))
 
 @app.route('/full_analysis/<int:game_id>')
 def full_analysis(game_id):

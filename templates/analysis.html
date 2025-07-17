@@ -619,7 +619,12 @@ function showBestMove() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({fen: currentFenToAnalyze})
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success && data.analysis) {
             const bestMove = data.analysis.best_move;
@@ -645,7 +650,7 @@ function showBestMove() {
             suggestionContent.innerHTML = `
                 <div class="alert alert-warning mb-0">
                     <i class="fas fa-exclamation-triangle"></i>
-                    Could not analyze position. Make sure Stockfish is installed.
+                    ${data.error || 'Could not analyze position. Make sure Stockfish is installed.'}
                 </div>
             `;
         }
@@ -655,7 +660,7 @@ function showBestMove() {
         suggestionContent.innerHTML = `
             <div class="alert alert-danger mb-0">
                 <i class="fas fa-times-circle"></i>
-                Error analyzing position.
+                Error analyzing position: ${error.message}
             </div>
         `;
     });
@@ -755,9 +760,14 @@ function analyzeMove(fen, moveIndex) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({fen: fen})
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data.success) {
+        if (data.success && data.analysis) {
             modalContent.innerHTML = formatAnalysisResult(data.analysis);
         } else {
             modalContent.innerHTML = `
@@ -769,6 +779,7 @@ function analyzeMove(fen, moveIndex) {
         }
     })
     .catch(error => {
+        console.error('Analysis error:', error);
         modalContent.innerHTML = `
             <div class="alert alert-danger">
                 <h5>Error</h5>
@@ -804,8 +815,15 @@ function formatAnalysisResult(analysis) {
 }
 
 function analyzeAllMoves() {
-    // Redirect to analyze all moves
-    window.location.href = `/analyze_all/${gameData.game_id}`;
+    // For now, just show a message since auto-analysis happens on upload
+    if (gameData.auto_analyzed) {
+        alert('This game has already been auto-analyzed! You can see the move quality indicators next to each move.');
+    } else {
+        if (confirm('This will trigger a new analysis of all moves. This may take a while. Continue?')) {
+            // Reload the page to trigger auto-analysis
+            window.location.reload();
+        }
+    }
 }
 
 function findBlunders() {
