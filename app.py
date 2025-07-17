@@ -140,36 +140,70 @@ def analyze_all_moves_automatically(game_data, stockfish):
             is_good = False
             better_move = None
             
-            if analysis and analysis.get('best_move'):
+            if analysis and analysis.get('best_move') and analysis.get('top_moves'):
                 best_move = analysis['best_move']
                 top_moves = analysis.get('top_moves', [])
                 
-                # Check if the played move is the best move
+                # Debug info
+                print(f"Move {i+1}: {move_data['san']} ({move_data['uci']}) vs Best: {best_move}")
+                
+                # Check if the played move is the best move (exact match)
                 if move_data['uci'] == best_move:
                     move_quality = 'excellent'
                     is_best = True
+                    print(f"  -> Excellent move (best)")
                 else:
                     # Check if move is in top moves
                     move_found = False
-                    for top_move in top_moves:
-                        if top_move.get('Move') == move_data['uci']:
+                    for idx, top_move in enumerate(top_moves):
+                        move_uci = top_move.get('Move', '')
+                        if move_uci == move_data['uci']:
                             move_found = True
-                            move_rank = top_moves.index(top_move)
-                            if move_rank <= 1:
+                            if idx == 0:  # Second best move
                                 move_quality = 'good'
                                 is_good = True
-                            elif move_rank <= 2:
+                                print(f"  -> Good move (rank {idx+1})")
+                            elif idx <= 2:  # Top 3 moves
                                 move_quality = 'inaccuracy'
+                                print(f"  -> Inaccuracy (rank {idx+1})")
                             else:
                                 move_quality = 'mistake'
+                                print(f"  -> Mistake (rank {idx+1})")
                             break
                     
                     if not move_found:
-                        # Check evaluation difference for blunder detection
-                        move_quality = 'blunder'
+                        # Move not in top 5, check evaluation difference
+                        # Set position after the played move to compare evaluations
+                        temp_board = chess.Board(move_data['fen_before'])
+                        temp_board.push(move)
+                        stockfish.set_fen_position(temp_board.fen())
+                        after_eval = stockfish.get_evaluation()
+                        
+                        # Set position for best move to compare
+                        temp_board2 = chess.Board(move_data['fen_before'])
+                        best_move_obj = chess.Move.from_uci(best_move)
+                        temp_board2.push(best_move_obj)
+                        stockfish.set_fen_position(temp_board2.fen())
+                        best_eval = stockfish.get_evaluation()
+                        
+                        # Compare evaluations to determine severity
+                        eval_diff = calculate_evaluation_difference(after_eval, best_eval)
+                        
+                        if eval_diff >= 300:  # 3+ pawns worse
+                            move_quality = 'blunder'
+                            print(f"  -> Blunder (eval diff: {eval_diff})")
+                        elif eval_diff >= 100:  # 1+ pawns worse
+                            move_quality = 'mistake'
+                            print(f"  -> Mistake (eval diff: {eval_diff})")
+                        else:
+                            move_quality = 'inaccuracy'
+                            print(f"  -> Inaccuracy (eval diff: {eval_diff})")
+                        
                         better_move = best_move
                     elif not is_good and not is_best:
                         better_move = best_move
+            else:
+                print(f"  -> No analysis available")
             
             # Add analysis data to move
             enhanced_move = move_data.copy()
@@ -218,21 +252,34 @@ def analyze_all_moves_automatically(game_data, stockfish):
     blunders = sum(1 for move in analyzed_moves if move['move_quality'] == 'blunder')
     
     print(f"📈 Game Statistics: {excellent_moves} excellent, {good_moves} good, {inaccuracies} inaccuracies, {mistakes} mistakes, {blunders} blunders")
-    
-    # Update game data with analyzed moves
-    game_data_copy = game_data.copy()
-    game_data_copy['moves'] = analyzed_moves
-    game_data_copy['auto_analyzed'] = True
-    game_data_copy['statistics'] = {
+
+    # Update game data
+    game_data['moves'] = analyzed_moves
+    game_data['auto_analyzed'] = True
+    game_data['statistics'] = {
         'excellent': excellent_moves,
         'good': good_moves,
         'inaccuracies': inaccuracies,
         'mistakes': mistakes,
-        'blunders': blunders,
-        'total_moves': total_moves
+        'blunders': blunders
     }
     
-    return game_data_copy
+    return game_data
+
+def calculate_evaluation_difference(eval1, eval2):
+    """Calculate the difference between two evaluations in centipawns"""
+    if not eval1 or not eval2:
+        return 0
+    
+    # Handle mate evaluations
+    if eval1.get('type') == 'mate' or eval2.get('type') == 'mate':
+        return 1000  # Large difference for mate scenarios
+    
+    # Handle centipawn evaluations
+    if eval1.get('type') == 'cp' and eval2.get('type') == 'cp':
+        return abs(eval1.get('value', 0) - eval2.get('value', 0))
+    
+    return 0
 
 def parse_pgn_file(file_path):
     """Parse PGN file and extract game information"""

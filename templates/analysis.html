@@ -155,6 +155,58 @@
     marker-end: url(#suggestion-arrowhead);
 }
 
+/* Compact statistics styling */
+.stats-compact {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 4px 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    min-width: 50px;
+    font-size: 0.85rem;
+}
+
+.stat-item .stat-number {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.stat-item .stat-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* Smaller navigation buttons */
+.nav-btn-small {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    margin: 1px;
+}
+
+.best-move-btn {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.best-move-btn:hover {
+    background: linear-gradient(45deg, #218838, #1da58a);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
 @media (max-width: 768px) {
     .chess-board {
         width: 480px;
@@ -173,6 +225,13 @@
     }
     .coord-rank {
         left: -25px;
+    }
+    .stats-compact {
+        gap: 5px;
+    }
+    .stat-item {
+        min-width: 40px;
+        padding: 2px 4px;
     }
 }
 
@@ -209,86 +268,10 @@
                 </h3>
             </div>
             <div class="card-body">
-                <!-- Game Info -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h5>Game Information</h5>
-                        <table class="table table-sm">
-                            <tr><td><strong>White:</strong></td><td>{{ game_data.headers.get('White', 'Unknown') }}</td></tr>
-                            <tr><td><strong>Black:</strong></td><td>{{ game_data.headers.get('Black', 'Unknown') }}</td></tr>
-                            <tr><td><strong>Result:</strong></td><td>{{ game_data.headers.get('Result', '*') }}</td></tr>
-                            <tr><td><strong>Date:</strong></td><td>{{ game_data.headers.get('Date', 'Unknown') }}</td></tr>
-                            {% if game_data.headers.get('Event') %}
-                            <tr><td><strong>Event:</strong></td><td>{{ game_data.headers.get('Event') }}</td></tr>
-                            {% endif %}
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        {% if game_data.auto_analyzed and game_data.statistics %}
-                        <h5>Game Statistics</h5>
-                        <div class="row">
-                            <div class="col-6">
-                                <div class="text-center p-2 border rounded bg-light">
-                                    <div class="h6 mb-0 text-success">{{ game_data.statistics.excellent }}</div>
-                                    <small class="text-muted">Excellent (!)</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="text-center p-2 border rounded bg-light">
-                                    <div class="h6 mb-0 text-primary">{{ game_data.statistics.good }}</div>
-                                    <small class="text-muted">Good</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-4">
-                                <div class="text-center p-2 border rounded bg-light">
-                                    <div class="h6 mb-0 text-warning">{{ game_data.statistics.inaccuracies }}</div>
-                                    <small class="text-muted">?</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="text-center p-2 border rounded bg-light">
-                                    <div class="h6 mb-0 text-danger">{{ game_data.statistics.mistakes }}</div>
-                                    <small class="text-muted">?!</small>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="text-center p-2 border rounded bg-light">
-                                    <div class="h6 mb-0 text-dark">{{ game_data.statistics.blunders }}</div>
-                                    <small class="text-muted">??</small>
-                                </div>
-                            </div>
-                        </div>
-                        {% else %}
-                        <h5>Analysis Controls</h5>
-                        {% endif %}
-                        <button class="btn btn-primary" onclick="goToStart()">
-                            <i class="fas fa-fast-backward"></i> Start
-                        </button>
-                        <button class="btn btn-secondary" onclick="previousMove()">
-                            <i class="fas fa-step-backward"></i> Previous
-                        </button>
-                        <button class="btn btn-secondary" onclick="nextMove()">
-                            <i class="fas fa-step-forward"></i> Next
-                        </button>
-                        <button class="btn btn-primary" onclick="goToEnd()">
-                            <i class="fas fa-fast-forward"></i> End
-                        </button>
-                        <br><br>
-                        <button class="btn btn-success" onclick="analyzeAllMoves()">
-                            <i class="fas fa-chess-knight"></i> Analyze All Moves
-                        </button>
-                        <button class="btn btn-info" onclick="findBlunders()">
-                            <i class="fas fa-exclamation-triangle"></i> Find Blunders
-                        </button>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <!-- Chess Board -->
-                    <div class="col-lg-6">
-                        <h5>Chess Board</h5>
+                <!-- Chess Board Section (Top) -->
+                <div class="row justify-content-center mb-4">
+                    <div class="col-auto">
+                        <h5 class="text-center mb-3">Chess Board</h5>
                         <div class="chess-board" id="chessboard">
                             <!-- Chess squares will be generated by JavaScript -->
                             <svg id="arrowSvg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;">
@@ -306,9 +289,32 @@
                         </div>
                         
                         <!-- Current Position Info -->
-                        <div class="mt-3">
-                            <p class="small"><strong>Current FEN:</strong> <span id="currentFen">{{ game_data.moves[0].fen_before if game_data.moves else 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' }}</span></p>
-                            <p class="small"><strong>Move:</strong> <span id="currentMoveText">Start position</span></p>
+                        <div class="mt-3 text-center">
+                            <p class="small mb-1"><strong>Current FEN:</strong> <span id="currentFen">{{ game_data.moves[0].fen_before if game_data.moves else 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' }}</span></p>
+                            <p class="small mb-0"><strong>Move:</strong> <span id="currentMoveText">Start position</span></p>
+                        </div>
+
+                        <!-- Navigation Controls -->
+                        <div class="text-center mt-3">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-primary nav-btn-small" onclick="goToStart()" title="Go to start">
+                                    <i class="fas fa-fast-backward"></i>
+                                </button>
+                                <button class="btn btn-secondary nav-btn-small" onclick="previousMove()" title="Previous move">
+                                    <i class="fas fa-step-backward"></i>
+                                </button>
+                                <button class="btn btn-secondary nav-btn-small" onclick="nextMove()" title="Next move">
+                                    <i class="fas fa-step-forward"></i>
+                                </button>
+                                <button class="btn btn-primary nav-btn-small" onclick="goToEnd()" title="Go to end">
+                                    <i class="fas fa-fast-forward"></i>
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                <button class="btn best-move-btn" onclick="showBestMove()" title="Show best move for current position">
+                                    <i class="fas fa-lightbulb"></i> Melhor Movimento
+                                </button>
+                            </div>
                         </div>
                         
                         <!-- Move Suggestion Panel -->
@@ -332,9 +338,63 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Game Information Section (Bottom) -->
+                <div class="row">
+                    <!-- Game Info -->
+                    <div class="col-md-6">
+                        <h5>Game Information</h5>
+                        <table class="table table-sm">
+                            <tr><td><strong>White:</strong></td><td>{{ game_data.headers.get('White', 'Unknown') }}</td></tr>
+                            <tr><td><strong>Black:</strong></td><td>{{ game_data.headers.get('Black', 'Unknown') }}</td></tr>
+                            <tr><td><strong>Result:</strong></td><td>{{ game_data.headers.get('Result', '*') }}</td></tr>
+                            <tr><td><strong>Date:</strong></td><td>{{ game_data.headers.get('Date', 'Unknown') }}</td></tr>
+                            {% if game_data.headers.get('Event') %}
+                            <tr><td><strong>Event:</strong></td><td>{{ game_data.headers.get('Event') }}</td></tr>
+                            {% endif %}
+                        </table>
+
+                        <!-- Compact Game Statistics -->
+                        {% if game_data.auto_analyzed and game_data.statistics %}
+                        <h6>Game Statistics</h6>
+                        <div class="stats-compact">
+                            <div class="stat-item">
+                                <div class="stat-number text-success">{{ game_data.statistics.excellent }}</div>
+                                <div class="stat-label">Excellent (!)</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number text-primary">{{ game_data.statistics.good }}</div>
+                                <div class="stat-label">Good</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number text-warning">{{ game_data.statistics.inaccuracies }}</div>
+                                <div class="stat-label">Inaccuracy (?)</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number text-danger">{{ game_data.statistics.mistakes }}</div>
+                                <div class="stat-label">Mistake (?!)</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number text-dark">{{ game_data.statistics.blunders }}</div>
+                                <div class="stat-label">Blunder (??)</div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Analysis Controls -->
+                        <div class="mt-3">
+                            <button class="btn btn-success btn-sm" onclick="analyzeAllMoves()">
+                                <i class="fas fa-chess-knight"></i> Analyze All Moves
+                            </button>
+                            <button class="btn btn-info btn-sm" onclick="findBlunders()">
+                                <i class="fas fa-exclamation-triangle"></i> Find Blunders
+                            </button>
+                        </div>
+                    </div>
 
                     <!-- Move List -->
-                    <div class="col-lg-6">
+                    <div class="col-md-6">
                         <div class="d-flex justify-content-between align-items-center">
                             <h5>Moves</h5>
                             {% if game_data.auto_analyzed %}
@@ -414,260 +474,254 @@
 
 {% block extra_js %}
 <script>
-let gameData = {{ game_data | tojson }};
 let currentMoveIndex = -1;
-let analysisResults = {};
-let currentBoard = null;
+let gameData = {{ game_data|tojson }};
+let currentFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-// Chess piece symbols
-const pieceSymbols = {
+// Chess piece Unicode characters
+const pieces = {
     'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
     'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
 };
 
-function initializeChessBoard() {
+function initializeBoard() {
     const board = document.getElementById('chessboard');
-    board.innerHTML = '';
+    board.innerHTML = '<svg id="arrowSvg" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5;"><defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#FFD700" /></marker><marker id="suggestion-arrowhead" markerWidth="12" markerHeight="8" refX="11" refY="4" orient="auto"><polygon points="0 0, 12 4, 0 8" fill="#32CD32" /></marker></defs></svg>';
     
-    const squareSize = getSquareSize();
-    
-    // Create squares
     for (let rank = 8; rank >= 1; rank--) {
         for (let file = 0; file < 8; file++) {
             const square = document.createElement('div');
             square.className = 'chess-square';
-            square.id = `square-${String.fromCharCode(97 + file)}${rank}`;
+            square.id = String.fromCharCode(97 + file) + rank;
             
-            // Set square color
-            if ((rank + file) % 2 === 0) {
-                square.classList.add('dark-square');
-            } else {
-                square.classList.add('light-square');
-            }
+            const isLight = (rank + file) % 2 === 1;
+            square.classList.add(isLight ? 'light-square' : 'dark-square');
             
-            // Position the square
-            square.style.left = `${file * squareSize}px`;
-            square.style.top = `${(8 - rank) * squareSize}px`;
+            const left = file * 75;
+            const top = (8 - rank) * 75;
+            square.style.left = left + 'px';
+            square.style.top = top + 'px';
             
             board.appendChild(square);
             
             // Add coordinates
             if (file === 0) {
-                const rankLabel = document.createElement('div');
-                rankLabel.className = 'chess-coordinates coord-rank';
-                rankLabel.textContent = rank;
-                rankLabel.style.left = `${file * squareSize - 30}px`;
-                rankLabel.style.top = `${(8 - rank) * squareSize + squareSize/2 - 8}px`;
-                board.appendChild(rankLabel);
+                const rankCoord = document.createElement('div');
+                rankCoord.className = 'chess-coordinates coord-rank';
+                rankCoord.textContent = rank;
+                rankCoord.style.left = (left - 30) + 'px';
+                rankCoord.style.top = (top + 37.5) + 'px';
+                board.appendChild(rankCoord);
             }
-            
             if (rank === 1) {
-                const fileLabel = document.createElement('div');
-                fileLabel.className = 'chess-coordinates coord-file';
-                fileLabel.textContent = String.fromCharCode(97 + file);
-                fileLabel.style.left = `${file * squareSize + squareSize/2 - 8}px`;
-                fileLabel.style.top = `${8 * squareSize + 5}px`;
-                board.appendChild(fileLabel);
-            }
-        }
-    }
-}
-
-function getSquareSize() {
-    if (window.innerWidth <= 576) return 45;
-    if (window.innerWidth <= 768) return 60;
-    return 75;
-}
-
-function fenToBoard(fen) {
-    const board = {};
-    const pieces = fen.split(' ')[0];
-    const ranks = pieces.split('/');
-    
-    for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
-        const rank = 8 - rankIndex;
-        const rankStr = ranks[rankIndex];
-        let file = 0;
-        
-        for (let char of rankStr) {
-            if (isNaN(char)) {
-                const square = String.fromCharCode(97 + file) + rank;
-                board[square] = char;
-                file++;
-            } else {
-                file += parseInt(char);
+                const fileCoord = document.createElement('div');
+                fileCoord.className = 'chess-coordinates coord-file';
+                fileCoord.textContent = String.fromCharCode(97 + file);
+                fileCoord.style.left = (left + 37.5) + 'px';
+                fileCoord.style.top = (top + 75 + 10) + 'px';
+                board.appendChild(fileCoord);
             }
         }
     }
     
-    return board;
+    updateBoard(currentFen);
 }
 
-function displayPosition(fen) {
-    const board = fenToBoard(fen);
+function updateBoard(fen) {
+    currentFen = fen;
+    document.getElementById('currentFen').textContent = fen;
     
     // Clear all squares
-    document.querySelectorAll('.chess-square').forEach(square => {
+    const squares = document.querySelectorAll('.chess-square');
+    squares.forEach(square => {
         square.textContent = '';
         square.classList.remove('highlighted-square', 'suggested-square', 'last-move-from', 'last-move-to');
     });
     
-    // Place pieces
-    for (const [square, piece] of Object.entries(board)) {
-        const squareElement = document.getElementById(`square-${square}`);
-        if (squareElement && pieceSymbols[piece]) {
-            squareElement.textContent = pieceSymbols[piece];
-            squareElement.style.color = piece === piece.toUpperCase() ? '#fff' : '#000';
-            squareElement.style.textShadow = piece === piece.toUpperCase() ? '1px 1px 1px #000' : '1px 1px 1px #fff';
-        }
-    }
+    // Clear arrows
+    clearArrows();
     
-    currentBoard = board;
-}
-
-function highlightLastMove() {
-    if (currentMoveIndex >= 0 && gameData.moves[currentMoveIndex]) {
-        const move = gameData.moves[currentMoveIndex];
-        const uci = move.uci;
+    // Parse FEN and place pieces
+    const fenParts = fen.split(' ');
+    const position = fenParts[0];
+    const ranks = position.split('/');
+    
+    for (let rankIndex = 0; rankIndex < 8; rankIndex++) {
+        const rank = ranks[rankIndex];
+        let fileIndex = 0;
         
-        if (uci && uci.length >= 4) {
-            const fromSquare = uci.substring(0, 2);
-            const toSquare = uci.substring(2, 4);
-            
-            // Highlight squares
-            const fromElement = document.getElementById(`square-${fromSquare}`);
-            const toElement = document.getElementById(`square-${toSquare}`);
-            
-            if (fromElement) fromElement.classList.add('last-move-from');
-            if (toElement) toElement.classList.add('last-move-to');
-            
-            // Draw arrow for the actual move played
-            drawArrow(fromSquare, toSquare, 'normal');
+        for (const char of rank) {
+            if (isNaN(char)) {
+                const file = String.fromCharCode(97 + fileIndex);
+                const rankNum = 8 - rankIndex;
+                const square = document.getElementById(file + rankNum);
+                if (square && pieces[char]) {
+                    square.textContent = pieces[char];
+                }
+                fileIndex++;
+            } else {
+                fileIndex += parseInt(char);
+            }
         }
     }
 }
 
-function showSuggestion(bestMove, currentMove) {
+function selectMove(moveIndex) {
+    currentMoveIndex = moveIndex;
+    
+    // Update active move in list
+    document.querySelectorAll('.move-item').forEach((item, index) => {
+        item.classList.toggle('active', index === moveIndex);
+    });
+    
+    if (moveIndex >= 0 && moveIndex < gameData.moves.length) {
+        const move = gameData.moves[moveIndex];
+        updateBoard(move.fen_after);
+        document.getElementById('currentMoveText').textContent = 
+            `${Math.floor(moveIndex/2) + 1}${move.white_move ? '.' : '...'} ${move.san}`;
+        
+        // Highlight last move
+        highlightLastMove(move.uci);
+        
+        // Show suggestion automatically if available
+        if (move.better_move) {
+            showMoveArrow(move.better_move, 'suggestion');
+        }
+    } else {
+        // Start position
+        updateBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        document.getElementById('currentMoveText').textContent = "Start position";
+    }
+}
+
+function showBestMove() {
+    const currentFenToAnalyze = currentMoveIndex >= 0 && currentMoveIndex < gameData.moves.length 
+        ? gameData.moves[currentMoveIndex].fen_before 
+        : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    
+    // Show suggestion panel
     const suggestionPanel = document.getElementById('suggestionPanel');
     const suggestionContent = document.getElementById('suggestionContent');
     
-    if (bestMove && bestMove !== currentMove) {
-        suggestionPanel.classList.remove('d-none');
-        
-        // Highlight suggested move squares
-        if (bestMove.length >= 4) {
-            const fromSquare = bestMove.substring(0, 2);
-            const toSquare = bestMove.substring(2, 4);
+    suggestionPanel.classList.remove('d-none');
+    suggestionContent.innerHTML = `
+        <div class="text-center">
+            <div class="spinner-border spinner-border-sm" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            Analyzing position for best move...
+        </div>
+    `;
+    
+    // Analyze position
+    fetch('/analyze_position', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({fen: currentFenToAnalyze})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.analysis) {
+            const bestMove = data.analysis.best_move;
+            const evaluation = data.analysis.evaluation;
             
-            const fromElement = document.getElementById(`square-${fromSquare}`);
-            const toElement = document.getElementById(`square-${toSquare}`);
+            suggestionContent.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>Best move:</strong> ${bestMove || 'None found'}
+                        ${evaluation ? `<br><small>Evaluation: ${evaluation}</small>` : ''}
+                    </div>
+                    <button class="btn btn-sm btn-success" onclick="showMoveArrow('${bestMove}', 'suggestion')">
+                        <i class="fas fa-arrow-right"></i> Show
+                    </button>
+                </div>
+            `;
             
-            if (fromElement) fromElement.classList.add('suggested-square');
-            if (toElement) toElement.classList.add('suggested-square');
+            // Automatically show the arrow
+            if (bestMove) {
+                showMoveArrow(bestMove, 'suggestion');
+            }
+        } else {
+            suggestionContent.innerHTML = `
+                <div class="alert alert-warning mb-0">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Could not analyze position. Make sure Stockfish is installed.
+                </div>
+            `;
         }
-        
-        // Convert UCI to readable notation
-        const currentFen = document.getElementById('currentFen').textContent;
-        fetch('/convert_move', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                fen: currentFen.split(' ').slice(0, 4).join(' ') + ' 0 1', // Simplified FEN
-                uci_move: bestMove
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            const readableMove = data.san_move || bestMove;
-            suggestionContent.innerHTML = `
-                <p><strong>Better move suggested:</strong> ${readableMove} (${bestMove})</p>
-                <p class="small text-muted">Green highlighted squares show the engine's recommended move.</p>
-                <button class="btn btn-sm btn-warning" onclick="showMoveOnBoard('${bestMove}')">
-                    <i class="fas fa-eye"></i> Show Move
-                </button>
-            `;
-        })
-        .catch(error => {
-            suggestionContent.innerHTML = `
-                <p><strong>Better move suggested:</strong> ${bestMove}</p>
-                <p class="small text-muted">Green highlighted squares show the engine's recommended move.</p>
-                <button class="btn btn-sm btn-warning" onclick="showMoveOnBoard('${bestMove}')">
-                    <i class="fas fa-eye"></i> Show Move
-                </button>
-            `;
-        });
-    } else {
-        suggestionPanel.classList.add('d-none');
-    }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        suggestionContent.innerHTML = `
+            <div class="alert alert-danger mb-0">
+                <i class="fas fa-times-circle"></i>
+                Error analyzing position.
+            </div>
+        `;
+    });
 }
 
-function selectMove(index) {
-    // Remove active class from all moves
-    document.querySelectorAll('.move-item').forEach(item => {
-        item.classList.remove('active');
-    });
+function highlightLastMove(uci) {
+    if (!uci || uci.length < 4) return;
     
-    // Add active class to selected move
-    const moveElement = document.querySelector(`[data-move-index="${index}"]`);
-    if (moveElement) {
-        moveElement.classList.add('active');
-        currentMoveIndex = index;
-        
-        // Update FEN display and board
-        const fenAfter = moveElement.dataset.fenAfter;
-        const moveText = moveElement.dataset.move;
-        
-        document.getElementById('currentFen').textContent = fenAfter;
-        document.getElementById('currentMoveText').textContent = `Move ${index + 1}: ${moveText}`;
-        
-        displayPosition(fenAfter);
-        highlightLastMove();
-        
-        // Automatically show suggestion if available (from auto-analysis or manual analysis)
-        const betterMove = moveElement.dataset.betterMove;
-        const currentUci = moveElement.dataset.uci;
-        
-        if (betterMove && betterMove !== currentUci) {
-            // Show suggestion from auto-analysis
-            showSuggestion(betterMove, currentUci);
-        } else if (analysisResults[index]) {
-            // Show suggestion from manual analysis
-            const bestMove = analysisResults[index].best_move;
-            showSuggestion(bestMove, currentUci);
-        } else {
-            // Hide suggestion panel
-            document.getElementById('suggestionPanel').classList.add('d-none');
-        }
+    const fromSquare = uci.substring(0, 2);
+    const toSquare = uci.substring(2, 4);
+    
+    const fromElement = document.getElementById(fromSquare);
+    const toElement = document.getElementById(toSquare);
+    
+    if (fromElement) fromElement.classList.add('last-move-from');
+    if (toElement) toElement.classList.add('last-move-to');
+}
+
+function showMoveArrow(uci, type = 'move') {
+    if (!uci || uci.length < 4) return;
+    
+    const fromSquare = uci.substring(0, 2);
+    const toSquare = uci.substring(2, 4);
+    
+    const fromFile = fromSquare.charCodeAt(0) - 97;
+    const fromRank = parseInt(fromSquare[1]);
+    const toFile = toSquare.charCodeAt(0) - 97;
+    const toRank = parseInt(toSquare[1]);
+    
+    const fromX = fromFile * 75 + 37.5;
+    const fromY = (8 - fromRank) * 75 + 37.5;
+    const toX = toFile * 75 + 37.5;
+    const toY = (8 - toRank) * 75 + 37.5;
+    
+    const svg = document.getElementById('arrowSvg');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    
+    line.setAttribute('x1', fromX);
+    line.setAttribute('y1', fromY);
+    line.setAttribute('x2', toX);
+    line.setAttribute('y2', toY);
+    line.classList.add('arrow-line');
+    
+    if (type === 'suggestion') {
+        line.classList.add('suggestion-arrow');
+        line.setAttribute('marker-end', 'url(#suggestion-arrowhead)');
+    } else {
+        line.setAttribute('marker-end', 'url(#arrowhead)');
     }
+    
+    svg.appendChild(line);
+}
+
+function clearArrows() {
+    const svg = document.getElementById('arrowSvg');
+    const arrows = svg.querySelectorAll('.arrow-line, .suggestion-arrow');
+    arrows.forEach(arrow => arrow.remove());
 }
 
 function goToStart() {
-    currentMoveIndex = -1;
-    document.querySelectorAll('.move-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    
-    const startFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-    document.getElementById('currentFen').textContent = startFen;
-    document.getElementById('currentMoveText').textContent = 'Start position';
-    
-    displayPosition(startFen);
-    document.getElementById('suggestionPanel').classList.add('d-none');
-}
-
-function goToEnd() {
-    if (gameData.moves.length > 0) {
-        selectMove(gameData.moves.length - 1);
-    }
+    selectMove(-1);
 }
 
 function previousMove() {
-    if (currentMoveIndex > 0) {
+    if (currentMoveIndex > -1) {
         selectMove(currentMoveIndex - 1);
-    } else if (currentMoveIndex === 0) {
-        goToStart();
     }
 }
 
@@ -677,12 +731,15 @@ function nextMove() {
     }
 }
 
+function goToEnd() {
+    selectMove(gameData.moves.length - 1);
+}
+
 function analyzeMove(fen, moveIndex) {
     const modal = new bootstrap.Modal(document.getElementById('moveAnalysisModal'));
-    modal.show();
+    const modalContent = document.getElementById('modalAnalysisContent');
     
-    // Reset modal content
-    document.getElementById('modalAnalysisContent').innerHTML = `
+    modalContent.innerHTML = `
         <div class="text-center">
             <div class="spinner-border" role="status">
                 <span class="visually-hidden">Loading...</span>
@@ -691,273 +748,82 @@ function analyzeMove(fen, moveIndex) {
         </div>
     `;
     
-    fetch('/analyze_move', {
+    modal.show();
+    
+    fetch('/analyze_position', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({fen: fen})
     })
     .then(response => response.json())
     .then(data => {
-        if (data.error) {
-            document.getElementById('modalAnalysisContent').innerHTML = `
+        if (data.success) {
+            modalContent.innerHTML = formatAnalysisResult(data.analysis);
+        } else {
+            modalContent.innerHTML = `
                 <div class="alert alert-danger">
-                    <strong>Error:</strong> ${data.error}
+                    <h5>Analysis Error</h5>
+                    <p>${data.error || 'Could not analyze position'}</p>
                 </div>
             `;
-        } else {
-            analysisResults[moveIndex] = data;
-            displayAnalysis(data, moveIndex);
-            
-            // Update move quality if this is the current move
-            if (moveIndex === currentMoveIndex) {
-                const moveElement = document.querySelector(`[data-move-index="${moveIndex}"]`);
-                const currentUci = moveElement.dataset.uci;
-                const bestMove = data.best_move;
-                showSuggestion(bestMove, currentUci);
-                updateMoveQuality(moveIndex, data);
-            }
         }
     })
     .catch(error => {
-        document.getElementById('modalAnalysisContent').innerHTML = `
+        modalContent.innerHTML = `
             <div class="alert alert-danger">
-                <strong>Error:</strong> Failed to analyze position
+                <h5>Error</h5>
+                <p>Failed to analyze position: ${error.message}</p>
             </div>
         `;
     });
 }
 
-function updateMoveQuality(moveIndex, analysis) {
-    const qualityElement = document.getElementById(`quality-${moveIndex}`);
-    if (!qualityElement) return;
+function formatAnalysisResult(analysis) {
+    if (!analysis) return '<p>No analysis available</p>';
     
-    const moveElement = document.querySelector(`[data-move-index="${moveIndex}"]`);
-    const currentUci = moveElement.dataset.uci;
+    let html = '<div class="analysis-result">';
     
-    // Use enhanced move quality assessment
-    const qualityInfo = getMoveQualityInfo(currentUci, analysis);
-    
-    qualityElement.className = `move-quality quality-${qualityInfo.quality}`;
-    qualityElement.textContent = qualityInfo.text;
-    qualityElement.style.backgroundColor = qualityInfo.color;
-    qualityElement.classList.remove('d-none');
-    
-    // Update move element styling
-    moveElement.classList.remove('good-move', 'bad-move');
-    if (qualityInfo.quality === 'excellent' || qualityInfo.quality === 'good') {
-        moveElement.classList.add('good-move');
-    } else if (qualityInfo.quality === 'blunder' || qualityInfo.quality === 'mistake') {
-        moveElement.classList.add('bad-move');
-    }
-}
-
-function displayAnalysis(analysis, moveIndex) {
-    let evaluationText = '';
     if (analysis.evaluation) {
-        if (analysis.evaluation.type === 'cp') {
-            const centipawns = analysis.evaluation.value;
-            evaluationText = `${(centipawns / 100).toFixed(2)} pawns`;
-        } else if (analysis.evaluation.type === 'mate') {
-            evaluationText = `Mate in ${Math.abs(analysis.evaluation.value)}`;
-        }
+        html += `<h6>Position Evaluation</h6><p class="alert alert-info">${analysis.evaluation}</p>`;
     }
     
-    let content = `
-        <div class="row">
-            <div class="col-md-6">
-                <h6>Position Evaluation</h6>
-                <p><strong>Best Move:</strong> ${analysis.best_move || 'None found'}</p>
-                <p><strong>Evaluation:</strong> ${evaluationText}</p>
-            </div>
-            <div class="col-md-6">
-                <h6>Alternative Moves</h6>
-                <div class="list-group">
-    `;
+    if (analysis.best_move) {
+        html += `<h6>Best Move</h6><p><strong>${analysis.best_move}</strong></p>`;
+    }
     
     if (analysis.top_moves && analysis.top_moves.length > 0) {
-        analysis.top_moves.forEach((move, index) => {
-            let moveEval = '';
-            if (move.Centipawn !== undefined) {
-                moveEval = `(${(move.Centipawn / 100).toFixed(2)})`;
-            } else if (move.Mate !== undefined) {
-                moveEval = `(M${Math.abs(move.Mate)})`;
-            }
-            
-            content += `
-                <div class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>${index + 1}. ${move.Move}</span>
-                    <small class="text-muted">${moveEval}</small>
-                </div>
-            `;
+        html += '<h6>Top Moves</h6><ol>';
+        analysis.top_moves.slice(0, 5).forEach(move => {
+            html += `<li><strong>${move.Move}</strong> (${move.Centipawn || 'N/A'})</li>`;
         });
-    } else {
-        content += '<p class="text-muted">No alternative moves found</p>';
+        html += '</ol>';
     }
     
-    content += `
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.getElementById('modalAnalysisContent').innerHTML = content;
+    html += '</div>';
+    return html;
 }
 
 function analyzeAllMoves() {
-    if (!confirm('This will analyze all moves in the game. This may take a while. Continue?')) {
-        return;
-    }
-    
-    let currentAnalysisIndex = 0;
-    const totalMoves = gameData.moves.length;
-    
-    function analyzeNextMove() {
-        if (currentAnalysisIndex >= totalMoves) {
-            alert('Game analysis complete!');
-            return;
-        }
-        
-        const move = gameData.moves[currentAnalysisIndex];
-        const moveIndex = currentAnalysisIndex;
-        
-        // Update progress
-        console.log(`Analyzing move ${moveIndex + 1}/${totalMoves}`);
-        
-        fetch('/analyze_move', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({fen: move.fen_before})
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (!data.error) {
-                analysisResults[moveIndex] = data;
-                updateMoveQuality(moveIndex, data);
-            }
-            
-            currentAnalysisIndex++;
-            setTimeout(analyzeNextMove, 500); // Small delay between requests
-        })
-        .catch(error => {
-            console.error('Analysis error:', error);
-            currentAnalysisIndex++;
-            setTimeout(analyzeNextMove, 500);
-        });
-    }
-    
-    analyzeNextMove();
+    // Redirect to analyze all moves
+    window.location.href = `/analyze_all/${gameData.game_id}`;
 }
 
 function findBlunders() {
-    alert('Blunder detection feature coming soon! For now, use "Analyze All Moves" to see move quality indicators.');
-}
-
-// Initialize the board when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    initializeChessBoard();
-    goToStart();
-});
-
-function showMoveOnBoard(uciMove) {
-    // Clear previous arrows and highlights
-    clearArrows();
+    const blunderMoves = gameData.moves.filter((move, index) => 
+        move.move_quality === 'blunder' || move.move_quality === 'mistake');
     
-    if (uciMove && uciMove.length >= 4) {
-        const fromSquare = uciMove.substring(0, 2);
-        const toSquare = uciMove.substring(2, 4);
-        
-        // Draw arrow from source to destination
-        drawArrow(fromSquare, toSquare, 'suggestion');
-        
-        // Also highlight the squares
-        const fromElement = document.getElementById(`square-${fromSquare}`);
-        const toElement = document.getElementById(`square-${toSquare}`);
-        
-        if (fromElement) fromElement.classList.add('suggested-square');
-        if (toElement) toElement.classList.add('suggested-square');
-    }
-}
-
-function drawArrow(fromSquare, toSquare, type = 'normal') {
-    const svg = document.getElementById('arrowSvg');
-    
-    // Calculate square coordinates
-    const fromCoords = getSquareCoordinates(fromSquare);
-    const toCoords = getSquareCoordinates(toSquare);
-    
-    // Create arrow line
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', fromCoords.x);
-    line.setAttribute('y1', fromCoords.y);
-    line.setAttribute('x2', toCoords.x);
-    line.setAttribute('y2', toCoords.y);
-    line.setAttribute('class', type === 'suggestion' ? 'suggestion-arrow' : 'arrow-line');
-    line.setAttribute('data-arrow', `${fromSquare}-${toSquare}`);
-    
-    svg.appendChild(line);
-}
-
-function getSquareCoordinates(square) {
-    const file = square.charCodeAt(0) - 97; // a=0, b=1, etc.
-    const rank = parseInt(square[1]) - 1;   // 1=0, 2=1, etc.
-    
-    const squareSize = getSquareSize();
-    
-    // Calculate center of square
-    const x = file * squareSize + squareSize / 2;
-    const y = (7 - rank) * squareSize + squareSize / 2; // Invert rank for display
-    
-    return { x, y };
-}
-
-function clearArrows() {
-    const svg = document.getElementById('arrowSvg');
-    const arrows = svg.querySelectorAll('line');
-    arrows.forEach(arrow => arrow.remove());
-}
-
-function clearHighlights() {
-    // Clear visual highlights
-    document.querySelectorAll('.chess-square').forEach(square => {
-        square.classList.remove('suggested-square', 'highlighted-square');
-        square.style.backgroundColor = '';
-        square.style.boxShadow = '';
-    });
-    
-    // Clear arrows
-    clearArrows();
-}
-
-// Enhanced move quality assessment
-function getMoveQualityInfo(currentUci, analysis) {
-    if (!analysis.top_moves || analysis.top_moves.length === 0) {
-        return { quality: 'unknown', text: '', color: '#666' };
+    if (blunderMoves.length === 0) {
+        alert('No blunders or mistakes found in this game!');
+        return;
     }
     
-    const bestMove = analysis.best_move;
-    const topMoves = analysis.top_moves;
+    // Jump to first blunder
+    const firstBlunderIndex = gameData.moves.findIndex(move => 
+        move.move_quality === 'blunder' || move.move_quality === 'mistake');
     
-    // Check if current move is the best move
-    if (currentUci === bestMove) {
-        return { quality: 'excellent', text: '!', color: '#28a745' };
-    }
-    
-    // Check if current move is in top moves
-    const moveRank = topMoves.findIndex(move => move.Move === currentUci);
-    
-    if (moveRank === -1) {
-        // Move not in top 5, likely a mistake or blunder
-        return { quality: 'blunder', text: '??', color: '#dc3545' };
-    } else if (moveRank <= 1) {
-        // Top 2 moves are good
-        return { quality: 'good', text: '', color: '#6f42c1' };
-    } else {
-        // Move is okay but not great
-        return { quality: 'inaccuracy', text: '?', color: '#ffc107' };
+    if (firstBlunderIndex !== -1) {
+        selectMove(firstBlunderIndex);
+        alert(`Found ${blunderMoves.length} blunder(s)/mistake(s). Jumping to first one.`);
     }
 }
 
@@ -965,21 +831,37 @@ function getMoveQualityInfo(currentUci, analysis) {
 document.addEventListener('keydown', function(e) {
     switch(e.key) {
         case 'ArrowLeft':
+            e.preventDefault();
             previousMove();
             break;
         case 'ArrowRight':
+            e.preventDefault();
             nextMove();
             break;
         case 'Home':
+            e.preventDefault();
             goToStart();
             break;
         case 'End':
+            e.preventDefault();
             goToEnd();
             break;
         case 'Escape':
-            clearHighlights();
+            clearArrows();
+            document.getElementById('suggestionPanel').classList.add('d-none');
+            document.getElementById('analysisPanel').classList.add('d-none');
+            break;
+        case ' ':
+            e.preventDefault();
+            showBestMove();
             break;
     }
+});
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeBoard();
+    selectMove(-1); // Start at beginning
 });
 </script>
 {% endblock %}
