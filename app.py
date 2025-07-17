@@ -17,10 +17,15 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize Stockfish engine
 def get_stockfish_engine():
-    """Initialize Stockfish engine with optimal settings"""
+    """Initialize Stockfish engine with optimal settings for Windows and Linux"""
     try:
-        # Try common Stockfish paths
+        # Try common Stockfish paths for Windows and Linux
         stockfish_paths = [
+            # Windows paths
+            'C:\\stockfish\\stockfish.exe',
+            'C:\\Program Files\\stockfish\\stockfish.exe',
+            'stockfish.exe',
+            # Linux/Unix paths
             '/usr/bin/stockfish',
             '/usr/local/bin/stockfish',
             '/opt/homebrew/bin/stockfish',
@@ -42,6 +47,9 @@ def get_stockfish_engine():
                 print(f"Failed to initialize Stockfish at {path}: {e}")
                 continue
         print("❌ Warning: Could not initialize Stockfish engine. Move analysis will be disabled.")
+        print("💡 Please install Stockfish:")
+        print("   Windows: Download from https://stockfishchess.org/download/")
+        print("   Linux: sudo apt install stockfish")
         return None
     except Exception as e:
         print(f"Error initializing Stockfish: {e}")

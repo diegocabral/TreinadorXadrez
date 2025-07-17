@@ -25,40 +25,57 @@ A comprehensive Python web-based system for analyzing chess games from PGN files
 
 ### Prerequisites
 
-- Python 3.13+
+- Python 3.8+ (Python 3.11+ recommended)
 - Stockfish chess engine
-- Linux/Ubuntu system (tested on Ubuntu)
+- Windows 10/11, Linux, or macOS
 
-### Setup Instructions
+### Quick Setup for Windows 🪟
 
-1. **Clone or download the project files**
+1. **Download and extract all project files**
+2. **Double-click `setup_windows.bat`** - This will:
+   - Check Python installation
+   - Create virtual environment
+   - Install all dependencies
+   - Check for Stockfish engine
+3. **Double-click `start_chess_analyzer.bat`** to run the application
+4. **Open browser to `http://localhost:5000`**
 
-2. **Install system dependencies**:
-   ```bash
-   sudo apt update
-   sudo apt install python3.13-venv stockfish -y
-   ```
+📝 **For detailed Windows instructions, see [WINDOWS_SETUP.md](WINDOWS_SETUP.md)**
 
-3. **Create and activate virtual environment**:
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+### Manual Setup (All Platforms)
 
-4. **Install Python dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+#### For Windows:
+```cmd
+# 1. Install Python from https://www.python.org/downloads/
+# 2. Download Stockfish from https://stockfishchess.org/download/
+# 3. Extract Stockfish to C:\stockfish\
 
-5. **Run the application**:
-   ```bash
-   python app.py
-   ```
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+python app.py
+```
 
-6. **Open your browser and go to**:
-   ```
-   http://localhost:5000
-   ```
+#### For Linux/Ubuntu:
+```bash
+sudo apt update
+sudo apt install python3-venv stockfish -y
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+
+#### For macOS:
+```bash
+brew install stockfish
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python app.py
+```
+
+**Then open your browser to: `http://localhost:5000`**
 
 ## Usage
 

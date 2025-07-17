@@ -29,12 +29,17 @@ The Chess Game Analyzer has been fully implemented and is ready for use!
 - `static/js/main.js` - JavaScript utilities and functions
 
 ### Documentation
-- `README.md` - Complete installation and usage guide
+- `README.md` - Complete installation and usage guide (all platforms)
+- `WINDOWS_SETUP.md` - Detailed Windows installation instructions
+- `WINDOWS_README.md` - Quick start guide for Windows users
 - `SYSTEM_OVERVIEW.md` - Technical architecture documentation
 - `PROJECT_STATUS.md` - This delivery summary
 
-### Testing
-- `test_app.py` - Automated functionality tests
+### Testing & Setup Scripts
+- `test_app.py` - Automated functionality tests (Linux)
+- `test_windows.py` - Windows-specific setup validation
+- `setup_windows.bat` - One-click Windows setup script  
+- `start_chess_analyzer.bat` - One-click Windows startup script
 
 ## 🚀 **Application Status**
 
@@ -47,11 +52,12 @@ The Chess Game Analyzer has been fully implemented and is ready for use!
 
 ## 🔧 **Installation Completed**
 
-**System Setup**: ✅ **COMPLETE**
-- Python 3.13 virtual environment configured
-- All dependencies installed (Flask, python-chess, stockfish, etc.)
-- Stockfish chess engine installed and integrated
-- Web server running on port 5000
+**System Setup**: ✅ **COMPLETE FOR WINDOWS & LINUX**
+- ✅ **Windows Support**: One-click setup and start batch files
+- ✅ **Cross-Platform**: Works on Windows 10/11, Linux, and macOS
+- ✅ **Python Environment**: Virtual environment with all dependencies
+- ✅ **Stockfish Integration**: Windows-specific paths and auto-detection
+- ✅ **Easy Installation**: Automated setup scripts for Windows users
 
 ## 🧪 **Testing Results**
 
@@ -147,10 +153,15 @@ The Chess Game Analyzer is a **complete, production-ready application** that suc
 
 ---
 
-**To get started**: 
+**To get started on Windows**: 
+1. Double-click `setup_windows.bat` (one-time setup)
+2. Double-click `start_chess_analyzer.bat` (run application)
+3. Open `http://localhost:5000` in your browser
+4. Upload a PGN file from Chess.com and start analyzing!
+
+**To get started on Linux**: 
 1. Run `source venv/bin/activate && python app.py`
 2. Open `http://localhost:5000` in your browser
-3. Upload a PGN file from Chess.com
-4. Start analyzing your games!
+3. Upload a PGN file and analyze your games!
 
 **Happy chess analyzing! ♟️🏆**
