@@ -76,14 +76,43 @@ def analyze_position(fen, stockfish=None):
         # Get top moves
         top_moves = stockfish.get_top_moves(5)
         
+        # Get move quality assessment
+        move_quality = assess_move_quality(evaluation, top_moves)
+        
         return {
             'best_move': best_move,
             'evaluation': evaluation,
-            'top_moves': top_moves
+            'top_moves': top_moves,
+            'move_quality': move_quality
         }
     except Exception as e:
         print(f"Error analyzing position: {e}")
         return None
+
+def assess_move_quality(evaluation, top_moves):
+    """Assess the quality of moves based on evaluation differences"""
+    if not evaluation or not top_moves:
+        return 'unknown'
+    
+    # This is a simplified move quality assessment
+    # In practice, you'd compare with the position after the actual move
+    if evaluation.get('type') == 'mate':
+        return 'excellent'
+    
+    if evaluation.get('type') == 'cp':
+        centipawns = abs(evaluation.get('value', 0))
+        if centipawns <= 10:
+            return 'excellent'
+        elif centipawns <= 50:
+            return 'good'
+        elif centipawns <= 100:
+            return 'inaccuracy'
+        elif centipawns <= 300:
+            return 'mistake'
+        else:
+            return 'blunder'
+    
+    return 'good'
 
 def parse_pgn_file(file_path):
     """Parse PGN file and extract game information"""
@@ -186,6 +215,28 @@ def analyze_move():
         return jsonify({'error': 'Failed to analyze position'}), 500
     
     return jsonify(analysis)
+
+@app.route('/convert_move', methods=['POST'])
+def convert_move():
+    """Convert UCI move to readable algebraic notation"""
+    data = request.json
+    fen = data.get('fen')
+    uci_move = data.get('uci_move')
+    
+    if not fen or not uci_move:
+        return jsonify({'error': 'Missing FEN or UCI move'}), 400
+    
+    try:
+        board = chess.Board(fen)
+        move = chess.Move.from_uci(uci_move)
+        
+        if move in board.legal_moves:
+            san_move = board.san(move)
+            return jsonify({'san_move': san_move})
+        else:
+            return jsonify({'error': 'Invalid move'}), 400
+    except Exception as e:
+        return jsonify({'error': f'Error converting move: {e}'}), 500
 
 @app.route('/full_analysis/<int:game_id>')
 def full_analysis(game_id):

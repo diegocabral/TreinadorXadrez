@@ -64,6 +64,11 @@ A web-based chess analysis tool that helps you improve your game by analyzing PG
 - 📱 **Modern Interface**: Clean, responsive web design
 - ⚡ **Real-time**: Instant analysis of any position
 - 🎯 **Educational**: Learn from better move suggestions
+- ♟️ **Interactive Chess Board**: Full chess board with pieces and coordinates
+- 🎨 **Visual Move Suggestions**: Arrows and highlights show better moves
+- 📊 **Move Quality**: Color-coded moves (excellent !, good, inaccuracy ?, blunder ??)
+- ⌨️ **Keyboard Navigation**: Arrow keys to navigate through moves
+- 🔍 **Click Analysis**: Click any move to get instant engine evaluation
 
 ## 🏅 System Requirements
 
