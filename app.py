@@ -21,15 +21,16 @@ def get_stockfish_engine():
     try:
         # Try common Stockfish paths for Windows and Linux
         stockfish_paths = [
-            # Windows paths
-            'C:\\stockfish\\stockfish.exe',
-            'C:\\Program Files\\stockfish\\stockfish.exe',
-            'stockfish.exe',
-            # Linux/Unix paths
+            # Linux/Unix paths (most common first)
+            '/usr/games/stockfish',
             '/usr/bin/stockfish',
             '/usr/local/bin/stockfish',
             '/opt/homebrew/bin/stockfish',
-            'stockfish'
+            'stockfish',
+            # Windows paths
+            'C:\\stockfish\\stockfish.exe',
+            'C:\\Program Files\\stockfish\\stockfish.exe',
+            'stockfish.exe'
         ]
         
         for path in stockfish_paths:
@@ -272,6 +273,9 @@ def analyze_all_moves_automatically(game_data, stockfish):
         'blunders': blunders
     }
     
+    # Add debug information
+    game_data['debug_info'] = f"Analyzed {len(analyzed_moves)} moves, Stats: {excellent_moves}E {good_moves}G {inaccuracies}I {mistakes}M {blunders}B"
+    
     return game_data
 
 def calculate_evaluation_difference(eval1, eval2):
@@ -367,9 +371,12 @@ def upload_file():
         stockfish = get_stockfish_engine()
         if stockfish:
             print("🔍 Auto-analyzing game moves...")
+            print(f"📋 Game has {len(game_data.get('moves', []))} moves to analyze")
             game_data = analyze_all_moves_automatically(game_data, stockfish)
+            print(f"📊 Analysis complete. Statistics: {game_data.get('statistics', 'None')}")
         else:
             print("⚠️ Stockfish not available - skipping auto-analysis")
+            print("💡 Install Stockfish to enable automatic move analysis")
         
         # Clean up uploaded file
         os.remove(file_path)

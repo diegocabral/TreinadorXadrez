@@ -79,28 +79,116 @@
     border-left-color: #0056b3;
 }
 
-.move-item.bad-move {
-    border-left-color: #dc3545;
-    background-color: #f8d7da;
+/* Move quality styling - enhanced */
+.move-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
-.move-item.good-move {
-    border-left-color: #28a745;
-    background-color: #d4edda;
+.move-notation {
+    flex-grow: 1;
 }
 
-.move-quality {
-    font-size: 12px;
-    padding: 2px 6px;
-    border-radius: 10px;
+.move-san {
+    margin-left: 8px;
+    font-weight: 500;
+}
+
+.move-indicators {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.move-quality-badge {
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 12px;
     color: white;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 24px;
+    justify-content: center;
 }
 
-.quality-excellent { background-color: #28a745; }
-.quality-good { background-color: #6f42c1; }
-.quality-inaccuracy { background-color: #ffc107; color: #000; }
-.quality-mistake { background-color: #fd7e14; }
-.quality-blunder { background-color: #dc3545; }
+.better-move-indicator {
+    color: #28a745;
+    font-size: 14px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Quality-specific styling */
+.quality-excellent { 
+    background: linear-gradient(135deg, #28a745, #20c997);
+    box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+.quality-good { 
+    background: linear-gradient(135deg, #6f42c1, #8a63d2);
+    box-shadow: 0 2px 4px rgba(111, 66, 193, 0.3);
+}
+
+.quality-inaccuracy { 
+    background: linear-gradient(135deg, #ffc107, #ffcd39);
+    color: #000;
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
+}
+
+.quality-mistake { 
+    background: linear-gradient(135deg, #fd7e14, #ff922b);
+    box-shadow: 0 2px 4px rgba(253, 126, 20, 0.3);
+}
+
+.quality-blunder { 
+    background: linear-gradient(135deg, #dc3545, #e55563);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.quality-unknown {
+    background: linear-gradient(135deg, #6c757d, #868e96);
+    box-shadow: 0 2px 4px rgba(108, 117, 125, 0.3);
+}
+
+/* Move item background based on quality */
+.move-quality-excellent {
+    border-left: 4px solid #28a745;
+    background: linear-gradient(90deg, rgba(40, 167, 69, 0.05), transparent);
+}
+
+.move-quality-good {
+    border-left: 4px solid #6f42c1;
+    background: linear-gradient(90deg, rgba(111, 66, 193, 0.05), transparent);
+}
+
+.move-quality-inaccuracy {
+    border-left: 4px solid #ffc107;
+    background: linear-gradient(90deg, rgba(255, 193, 7, 0.05), transparent);
+}
+
+.move-quality-mistake {
+    border-left: 4px solid #fd7e14;
+    background: linear-gradient(90deg, rgba(253, 126, 20, 0.05), transparent);
+}
+
+.move-quality-blunder {
+    border-left: 4px solid #dc3545;
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.05), transparent);
+}
+
+.move-quality-unknown {
+    border-left: 4px solid #6c757d;
+    background: linear-gradient(90deg, rgba(108, 117, 125, 0.05), transparent);
+}
 
 .analysis-panel {
     border: 1px solid #ddd;
@@ -356,8 +444,9 @@
                         </table>
 
                         <!-- Compact Game Statistics -->
-                        {% if game_data.auto_analyzed and game_data.statistics %}
+                        {% if game_data.auto_analyzed %}
                         <h6>Game Statistics</h6>
+                        {% if game_data.statistics %}
                         <div class="stats-compact">
                             <div class="stat-item">
                                 <div class="stat-number text-success">{{ game_data.statistics.excellent }}</div>
@@ -380,6 +469,11 @@
                                 <div class="stat-label">Blunder (??)</div>
                             </div>
                         </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <small><i class="fas fa-info-circle"></i> Game analyzed but statistics not available. Debug: {{ game_data.get('debug_info', 'No debug info') }}</small>
+                        </div>
+                        {% endif %}
                         {% endif %}
 
                         <!-- Analysis Controls -->
@@ -409,7 +503,7 @@
                         </div>
                         <div class="move-list border rounded p-3">
                             {% for move in game_data.moves %}
-                                <div class="move-item {% if move.move_quality == 'excellent' %}good-move{% elif move.move_quality in ['blunder', 'mistake'] %}bad-move{% endif %}" 
+                                <div class="move-item move-quality-{{ move.move_quality if move.move_quality != 'unknown' else 'unknown' }}" 
                                      data-move-index="{{ loop.index0 }}"
                                      data-fen="{{ move.fen_before }}"
                                      data-fen-after="{{ move.fen_after }}"
@@ -417,21 +511,37 @@
                                      data-uci="{{ move.uci }}"
                                      {% if move.better_move %}data-better-move="{{ move.better_move }}"{% endif %}
                                      onclick="selectMove({{ loop.index0 }})">
-                                    <div>
-                                        <strong>{{ (loop.index0 // 2) + 1 }}{% if move.white_move %}.{% else %}...{% endif %}</strong>
-                                        {{ move.san }}
-                                        {% if move.move_quality != 'unknown' %}
-                                            <span class="move-quality quality-{{ move.move_quality }}" id="quality-{{ loop.index0 }}">
-                                                {% if move.move_quality == 'excellent' %}!
-                                                {% elif move.move_quality == 'blunder' %}??
-                                                {% elif move.move_quality == 'mistake' %}?!
-                                                {% elif move.move_quality == 'inaccuracy' %}?
-                                                {% endif %}
-                                            </span>
-                                        {% endif %}
-                                        {% if move.better_move %}
-                                            <span class="badge bg-success ms-1" title="Better move available">💡</span>
-                                        {% endif %}
+                                    <div class="move-content">
+                                        <div class="move-notation">
+                                            <strong>{{ (loop.index0 // 2) + 1 }}{% if move.white_move %}.{% else %}...{% endif %}</strong>
+                                            <span class="move-san">{{ move.san }}</span>
+                                        </div>
+                                        <div class="move-indicators">
+                                            {% if move.move_quality and move.move_quality != 'unknown' %}
+                                                <span class="move-quality-badge quality-{{ move.move_quality }}" title="Move quality: {{ move.move_quality|title }}">
+                                                    {% if move.move_quality == 'excellent' %}
+                                                        <i class="fas fa-star"></i> !
+                                                    {% elif move.move_quality == 'good' %}
+                                                        <i class="fas fa-thumbs-up"></i>
+                                                    {% elif move.move_quality == 'inaccuracy' %}
+                                                        <i class="fas fa-question"></i> ?
+                                                    {% elif move.move_quality == 'mistake' %}
+                                                        <i class="fas fa-exclamation"></i> ?!
+                                                    {% elif move.move_quality == 'blunder' %}
+                                                        <i class="fas fa-times"></i> ??
+                                                    {% endif %}
+                                                </span>
+                                            {% else %}
+                                                <span class="move-quality-badge quality-unknown" title="Move not analyzed">
+                                                    <i class="fas fa-clock"></i>
+                                                </span>
+                                            {% endif %}
+                                            {% if move.better_move %}
+                                                <span class="better-move-indicator" title="Better move available: {{ move.better_move }}">
+                                                    <i class="fas fa-lightbulb"></i>
+                                                </span>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                     <div>
                                         <button class="btn btn-sm btn-outline-primary" 
