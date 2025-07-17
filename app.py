@@ -34,9 +34,9 @@ def get_stockfish_engine():
         
         for path in stockfish_paths:
             try:
-                stockfish = Stockfish(path=path, depth=15, parameters={
-                    "Threads": 2,
-                    "Hash": 256,
+                stockfish = Stockfish(path=path, depth=12, parameters={
+                    "Threads": 4,
+                    "Hash": 512,
                     "Skill Level": 20
                 })
                 # Test if the engine is working
@@ -114,6 +114,126 @@ def assess_move_quality(evaluation, top_moves):
     
     return 'good'
 
+def analyze_all_moves_automatically(game_data, stockfish):
+    """Automatically analyze all moves in the game like Chess.com"""
+    total_moves = len(game_data['moves'])
+    print(f"📊 Auto-analyzing {total_moves} moves with optimized settings...")
+    
+    analyzed_moves = []
+    board = chess.Board()
+    
+    # Reduce depth for auto-analysis to speed up processing
+    original_depth = stockfish.depth
+    stockfish.depth = 10  # Faster analysis for auto-mode
+    
+    for i, move_data in enumerate(game_data['moves']):
+        try:
+            # Analyze position before the move
+            analysis = analyze_position(move_data['fen_before'], stockfish)
+            
+            # Create move object to check if it's in legal moves
+            move = chess.Move.from_uci(move_data['uci'])
+            
+            # Determine move quality by comparing with engine suggestions
+            move_quality = 'unknown'
+            is_best = False
+            is_good = False
+            better_move = None
+            
+            if analysis and analysis.get('best_move'):
+                best_move = analysis['best_move']
+                top_moves = analysis.get('top_moves', [])
+                
+                # Check if the played move is the best move
+                if move_data['uci'] == best_move:
+                    move_quality = 'excellent'
+                    is_best = True
+                else:
+                    # Check if move is in top moves
+                    move_found = False
+                    for top_move in top_moves:
+                        if top_move.get('Move') == move_data['uci']:
+                            move_found = True
+                            move_rank = top_moves.index(top_move)
+                            if move_rank <= 1:
+                                move_quality = 'good'
+                                is_good = True
+                            elif move_rank <= 2:
+                                move_quality = 'inaccuracy'
+                            else:
+                                move_quality = 'mistake'
+                            break
+                    
+                    if not move_found:
+                        # Check evaluation difference for blunder detection
+                        move_quality = 'blunder'
+                        better_move = best_move
+                    elif not is_good and not is_best:
+                        better_move = best_move
+            
+            # Add analysis data to move
+            enhanced_move = move_data.copy()
+            enhanced_move['analysis'] = analysis
+            enhanced_move['move_quality'] = move_quality
+            enhanced_move['is_best'] = is_best
+            enhanced_move['is_good'] = is_good
+            enhanced_move['better_move'] = better_move
+            
+            analyzed_moves.append(enhanced_move)
+            
+            # Make the move on the board for next iteration
+            board.push(move)
+            
+            # Progress indicator (more frequent for user feedback)
+            if (i + 1) % 3 == 0 or i == total_moves - 1:
+                progress = int((i + 1) / total_moves * 100)
+                print(f"⏳ Progress: {i + 1}/{total_moves} moves ({progress}%)")
+                
+        except Exception as e:
+            print(f"❌ Error analyzing move {i + 1}: {e}")
+            # Add move without analysis
+            enhanced_move = move_data.copy()
+            enhanced_move['analysis'] = None
+            enhanced_move['move_quality'] = 'unknown'
+            enhanced_move['is_best'] = False
+            enhanced_move['is_good'] = False
+            enhanced_move['better_move'] = None
+            analyzed_moves.append(enhanced_move)
+            
+            try:
+                board.push(chess.Move.from_uci(move_data['uci']))
+            except:
+                pass
+    
+    # Restore original depth
+    stockfish.depth = original_depth
+    
+    print("✅ Auto-analysis complete! Game ready for review.")
+    
+    # Calculate statistics
+    excellent_moves = sum(1 for move in analyzed_moves if move['move_quality'] == 'excellent')
+    good_moves = sum(1 for move in analyzed_moves if move['move_quality'] == 'good')
+    inaccuracies = sum(1 for move in analyzed_moves if move['move_quality'] == 'inaccuracy')
+    mistakes = sum(1 for move in analyzed_moves if move['move_quality'] == 'mistake')
+    blunders = sum(1 for move in analyzed_moves if move['move_quality'] == 'blunder')
+    
+    print(f"📈 Game Statistics: {excellent_moves} excellent, {good_moves} good, {inaccuracies} inaccuracies, {mistakes} mistakes, {blunders} blunders")
+    
+    # Update game data with analyzed moves
+    game_data_copy = game_data.copy()
+    game_data_copy['moves'] = analyzed_moves
+    game_data_copy['auto_analyzed'] = True
+    game_data_copy['statistics'] = {
+        'excellent': excellent_moves,
+        'good': good_moves,
+        'inaccuracies': inaccuracies,
+        'mistakes': mistakes,
+        'blunders': blunders,
+        'total_moves': total_moves
+    }
+    
+    return game_data_copy
+
 def parse_pgn_file(file_path):
     """Parse PGN file and extract game information"""
     try:
@@ -187,6 +307,14 @@ def upload_file():
         if not game_data:
             flash('Error parsing PGN file')
             return redirect(url_for('index'))
+        
+        # Automatically analyze all moves if Stockfish is available
+        stockfish = get_stockfish_engine()
+        if stockfish:
+            print("🔍 Auto-analyzing game moves...")
+            game_data = analyze_all_moves_automatically(game_data, stockfish)
+        else:
+            print("⚠️ Stockfish not available - skipping auto-analysis")
         
         # Clean up uploaded file
         os.remove(file_path)

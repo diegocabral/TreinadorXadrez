@@ -5,22 +5,23 @@
 {% block extra_css %}
 <style>
 .chess-board {
-    width: 400px;
-    height: 400px;
-    border: 2px solid #333;
+    width: 600px;
+    height: 600px;
+    border: 3px solid #333;
     margin: 0 auto;
     position: relative;
     background: #f0d9b5;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
 .chess-square {
-    width: 50px;
-    height: 50px;
+    width: 75px;
+    height: 75px;
     position: absolute;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 30px;
+    font-size: 45px;
     cursor: pointer;
     user-select: none;
 }
@@ -119,19 +120,19 @@
 
 .chess-coordinates {
     position: absolute;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: bold;
     color: #333;
 }
 
 .coord-file {
-    bottom: -20px;
+    bottom: -30px;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .coord-rank {
-    left: -20px;
+    left: -30px;
     top: 50%;
     transform: translateY(-50%);
 }
@@ -156,13 +157,43 @@
 
 @media (max-width: 768px) {
     .chess-board {
-        width: 320px;
-        height: 320px;
+        width: 480px;
+        height: 480px;
     }
     .chess-square {
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
+        width: 60px;
+        height: 60px;
+        font-size: 36px;
+    }
+    .chess-coordinates {
+        font-size: 14px;
+    }
+    .coord-file {
+        bottom: -25px;
+    }
+    .coord-rank {
+        left: -25px;
+    }
+}
+
+@media (max-width: 576px) {
+    .chess-board {
+        width: 360px;
+        height: 360px;
+    }
+    .chess-square {
+        width: 45px;
+        height: 45px;
+        font-size: 28px;
+    }
+    .chess-coordinates {
+        font-size: 12px;
+    }
+    .coord-file {
+        bottom: -20px;
+    }
+    .coord-rank {
+        left: -20px;
     }
 }
 </style>
@@ -193,7 +224,45 @@
                         </table>
                     </div>
                     <div class="col-md-6">
+                        {% if game_data.auto_analyzed and game_data.statistics %}
+                        <h5>Game Statistics</h5>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="text-center p-2 border rounded bg-light">
+                                    <div class="h6 mb-0 text-success">{{ game_data.statistics.excellent }}</div>
+                                    <small class="text-muted">Excellent (!)</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="text-center p-2 border rounded bg-light">
+                                    <div class="h6 mb-0 text-primary">{{ game_data.statistics.good }}</div>
+                                    <small class="text-muted">Good</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-4">
+                                <div class="text-center p-2 border rounded bg-light">
+                                    <div class="h6 mb-0 text-warning">{{ game_data.statistics.inaccuracies }}</div>
+                                    <small class="text-muted">?</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center p-2 border rounded bg-light">
+                                    <div class="h6 mb-0 text-danger">{{ game_data.statistics.mistakes }}</div>
+                                    <small class="text-muted">?!</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-center p-2 border rounded bg-light">
+                                    <div class="h6 mb-0 text-dark">{{ game_data.statistics.blunders }}</div>
+                                    <small class="text-muted">??</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
                         <h5>Analysis Controls</h5>
+                        {% endif %}
                         <button class="btn btn-primary" onclick="goToStart()">
                             <i class="fas fa-fast-backward"></i> Start
                         </button>
@@ -266,20 +335,43 @@
 
                     <!-- Move List -->
                     <div class="col-lg-6">
-                        <h5>Moves</h5>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>Moves</h5>
+                            {% if game_data.auto_analyzed %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> Auto-analyzed
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock"></i> Manual analysis available
+                                </span>
+                            {% endif %}
+                        </div>
                         <div class="move-list border rounded p-3">
                             {% for move in game_data.moves %}
-                                <div class="move-item" 
+                                <div class="move-item {% if move.move_quality == 'excellent' %}good-move{% elif move.move_quality in ['blunder', 'mistake'] %}bad-move{% endif %}" 
                                      data-move-index="{{ loop.index0 }}"
                                      data-fen="{{ move.fen_before }}"
                                      data-fen-after="{{ move.fen_after }}"
                                      data-move="{{ move.san }}"
                                      data-uci="{{ move.uci }}"
+                                     {% if move.better_move %}data-better-move="{{ move.better_move }}"{% endif %}
                                      onclick="selectMove({{ loop.index0 }})">
                                     <div>
                                         <strong>{{ (loop.index0 // 2) + 1 }}{% if move.white_move %}.{% else %}...{% endif %}</strong>
                                         {{ move.san }}
-                                        <span class="move-quality d-none" id="quality-{{ loop.index0 }}"></span>
+                                        {% if move.move_quality != 'unknown' %}
+                                            <span class="move-quality quality-{{ move.move_quality }}" id="quality-{{ loop.index0 }}">
+                                                {% if move.move_quality == 'excellent' %}!
+                                                {% elif move.move_quality == 'blunder' %}??
+                                                {% elif move.move_quality == 'mistake' %}?!
+                                                {% elif move.move_quality == 'inaccuracy' %}?
+                                                {% endif %}
+                                            </span>
+                                        {% endif %}
+                                        {% if move.better_move %}
+                                            <span class="badge bg-success ms-1" title="Better move available">💡</span>
+                                        {% endif %}
                                     </div>
                                     <div>
                                         <button class="btn btn-sm btn-outline-primary" 
@@ -337,6 +429,8 @@ function initializeChessBoard() {
     const board = document.getElementById('chessboard');
     board.innerHTML = '';
     
+    const squareSize = getSquareSize();
+    
     // Create squares
     for (let rank = 8; rank >= 1; rank--) {
         for (let file = 0; file < 8; file++) {
@@ -352,8 +446,8 @@ function initializeChessBoard() {
             }
             
             // Position the square
-            square.style.left = `${file * 50}px`;
-            square.style.top = `${(8 - rank) * 50}px`;
+            square.style.left = `${file * squareSize}px`;
+            square.style.top = `${(8 - rank) * squareSize}px`;
             
             board.appendChild(square);
             
@@ -362,8 +456,8 @@ function initializeChessBoard() {
                 const rankLabel = document.createElement('div');
                 rankLabel.className = 'chess-coordinates coord-rank';
                 rankLabel.textContent = rank;
-                rankLabel.style.left = `${file * 50 - 20}px`;
-                rankLabel.style.top = `${(8 - rank) * 50 + 18}px`;
+                rankLabel.style.left = `${file * squareSize - 30}px`;
+                rankLabel.style.top = `${(8 - rank) * squareSize + squareSize/2 - 8}px`;
                 board.appendChild(rankLabel);
             }
             
@@ -371,12 +465,18 @@ function initializeChessBoard() {
                 const fileLabel = document.createElement('div');
                 fileLabel.className = 'chess-coordinates coord-file';
                 fileLabel.textContent = String.fromCharCode(97 + file);
-                fileLabel.style.left = `${file * 50 + 18}px`;
-                fileLabel.style.top = `${8 * 50 + 5}px`;
+                fileLabel.style.left = `${file * squareSize + squareSize/2 - 8}px`;
+                fileLabel.style.top = `${8 * squareSize + 5}px`;
                 board.appendChild(fileLabel);
             }
         }
     }
+}
+
+function getSquareSize() {
+    if (window.innerWidth <= 576) return 45;
+    if (window.innerWidth <= 768) return 60;
+    return 75;
 }
 
 function fenToBoard(fen) {
@@ -525,11 +625,20 @@ function selectMove(index) {
         displayPosition(fenAfter);
         highlightLastMove();
         
-        // Check if we have analysis for this position and show suggestions
-        if (analysisResults[index]) {
-            const currentUci = moveElement.dataset.uci;
+        // Automatically show suggestion if available (from auto-analysis or manual analysis)
+        const betterMove = moveElement.dataset.betterMove;
+        const currentUci = moveElement.dataset.uci;
+        
+        if (betterMove && betterMove !== currentUci) {
+            // Show suggestion from auto-analysis
+            showSuggestion(betterMove, currentUci);
+        } else if (analysisResults[index]) {
+            // Show suggestion from manual analysis
             const bestMove = analysisResults[index].best_move;
             showSuggestion(bestMove, currentUci);
+        } else {
+            // Hide suggestion panel
+            document.getElementById('suggestionPanel').classList.add('d-none');
         }
     }
 }
@@ -796,9 +905,11 @@ function getSquareCoordinates(square) {
     const file = square.charCodeAt(0) - 97; // a=0, b=1, etc.
     const rank = parseInt(square[1]) - 1;   // 1=0, 2=1, etc.
     
-    // Calculate center of square (25px offset for 50px squares)
-    const x = file * 50 + 25;
-    const y = (7 - rank) * 50 + 25; // Invert rank for display
+    const squareSize = getSquareSize();
+    
+    // Calculate center of square
+    const x = file * squareSize + squareSize / 2;
+    const y = (7 - rank) * squareSize + squareSize / 2; // Invert rank for display
     
     return { x, y };
 }

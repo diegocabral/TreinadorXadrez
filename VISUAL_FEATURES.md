@@ -6,11 +6,12 @@ The Chess Game Analyzer now includes a fully interactive chess board with advanc
 
 ## ♟️ Interactive Chess Board Features
 
-### **1. Full Chess Board Display**
-- **8x8 Chess Board**: Complete visual representation with proper square colors
-- **Unicode Chess Pieces**: Beautiful chess piece symbols (♔♕♖♗♘♙ vs ♚♛♜♝♞♟)
-- **Chess Coordinates**: File letters (a-h) and rank numbers (1-8) for reference
-- **Responsive Design**: Scales properly on different screen sizes
+### **1. Enhanced Chess Board Display**
+- **Large 600x600px Chess Board**: Professional-size visual representation with clear visibility
+- **75px Squares**: Large squares with beautiful Unicode chess pieces (♔♕♖♗♘♙ vs ♚♛♜♝♞♟)
+- **Chess Coordinates**: Clear file letters (a-h) and rank numbers (1-8) for reference
+- **Responsive Design**: Scales to 480px on tablets and 360px on mobile devices
+- **Professional Styling**: Enhanced shadows and borders for premium feel
 
 ### **2. Move Visualization**
 - **Last Move Highlighting**: 
@@ -18,20 +19,24 @@ The Chess Game Analyzer now includes a fully interactive chess board with advanc
   - 🟪 Pink squares show where the piece moved TO
   - ➡️ Golden arrows display the actual move path
 
-### **3. Engine Suggestion System**
-- **Smart Suggestions**: When a move isn't optimal, the system automatically suggests better alternatives
+### **3. Automatic Analysis System (Like Chess.com)**
+- **Instant Auto-Analysis**: All moves are automatically analyzed when you upload a PGN file
+- **Chess.com-Style Evaluation**: Each move is categorized exactly like on Chess.com
+- **Automatic Suggestions**: Better moves are shown instantly without clicking buttons
 - **Visual Arrows**: 
   - 🟢 Green arrows point to the engine's recommended move
-  - Different arrow colors for different suggestion types
-- **Interactive Buttons**: Click "Show Move" to see the suggestion clearly highlighted
+  - 🟡 Golden arrows show the actual move played
+- **Smart Loading**: Analysis happens in the background with progress indicators
 
-### **4. Move Quality Assessment**
-- **Color-Coded Moves**:
-  - 🟢 **Excellent (!)**: Best possible moves
+### **4. Chess.com-Style Move Quality Assessment**
+- **Automatic Color-Coded Moves**:
+  - 🟢 **Excellent (!)**: Best engine moves - green background
   - 🟣 **Good**: Strong moves in top engine choices  
-  - 🟡 **Inaccuracy (?)**: Okay moves but not optimal
-  - 🟠 **Mistake (??)**: Poor moves that lose advantage
-  - 🔴 **Blunder (??)**: Very bad moves with significant material/positional loss
+  - 🟡 **Inaccuracy (?)**: Suboptimal moves with minor disadvantage
+  - 🟠 **Mistake (?!)**: Poor moves that lose advantage
+  - 🔴 **Blunder (??)**: Very bad moves with major material/positional loss
+- **Instant Feedback**: Quality indicators appear automatically, no clicking required
+- **💡 Suggestion Icons**: Green lightbulb icons mark moves with better alternatives
 
 ### **5. Navigation Features**
 - **Keyboard Controls**:

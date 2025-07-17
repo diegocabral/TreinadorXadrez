@@ -48,9 +48,29 @@
                     </div>
 
                     <div class="text-center">
-                        <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled>
+                        <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled onclick="showAnalysisLoader()">
                             <i class="fas fa-chess-knight me-2"></i>Analyze Game
                         </button>
+                    </div>
+                    
+                    <!-- Analysis Loading Modal -->
+                    <div class="modal fade" id="analysisLoadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-body text-center p-4">
+                                    <div class="spinner-border text-success mb-3" style="width: 3rem; height: 3rem;" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <h5>Analyzing Your Chess Game</h5>
+                                    <p class="text-muted">
+                                        🔍 Parsing PGN file...<br>
+                                        🧠 Running Stockfish analysis...<br>
+                                        🎯 Evaluating move quality...<br>
+                                        <small>This may take a few moments for longer games.</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </form>
 
@@ -142,5 +162,13 @@ function handleFileSelect(event) {
 document.getElementById('uploadZone').addEventListener('click', function() {
     document.getElementById('fileInput').click();
 });
+
+function showAnalysisLoader() {
+    // Show loading modal when form is submitted
+    setTimeout(() => {
+        const modal = new bootstrap.Modal(document.getElementById('analysisLoadingModal'));
+        modal.show();
+    }, 100);
+}
 </script>
 {% endblock %}
